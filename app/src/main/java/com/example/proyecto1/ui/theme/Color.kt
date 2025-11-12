@@ -2,28 +2,32 @@ package com.example.proyecto1.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary Colors
-val Primary = Color(0xFF1976D2)
-val PrimaryDark = Color(0xFF1565C0)
-val PrimaryLight = Color(0xFFBBDEFB)
+// Primary Colors - Green
+val Primary = Color(0xFF83bc41)
+val PrimaryDark = Color(0xFF6BA535)
+val PrimaryLight = Color(0xFFC8E6C9)
 
-// Secondary Colors
-val Secondary = Color(0xFFFF9800)
-val SecondaryDark = Color(0xFFF57C00)
-val SecondaryLight = Color(0xFFFFE0B2)
+// Secondary Colors - Orange/Amber
+val Secondary = Color(0xFFCC972C)
+val SecondaryDark = Color(0xFFB8860B)
+val SecondaryLight = Color(0xFFFFD699)
+
+// Accent Colors - Complementary tones
+val AccentTeal = Color(0xFF00897B)
+val AccentLightGreen = Color(0xFFA4D65E)
 
 // Status Colors
-val Success = Color(0xFF4CAF50)
-val SuccessLight = Color(0xFF81C784)
-val Warning = Color(0xFFFFC107)
-val WarningLight = Color(0xFFFFD54F)
-val Error = Color(0xFFF44336)
-val ErrorLight = Color(0xFFE57373)
+val Success = Color(0xFF83bc41)
+val SuccessLight = Color(0xFFC8E6C9)
+val Warning = Color(0xFFCC972C)
+val WarningLight = Color(0xFFFFD699)
+val Error = Color(0xFFD32F2F)
+val ErrorLight = Color(0xFFEF9A9A)
 
 // Parking Status Colors
-val ParkingAvailable = Color(0xFF4CAF50)
-val ParkingFewSpots = Color(0xFFFFC107)
-val ParkingFull = Color(0xFFF44336)
+val ParkingAvailable = Color(0xFF83bc41)
+val ParkingFewSpots = Color(0xFFCC972C)
+val ParkingFull = Color(0xFFD32F2F)
 
 // Neutral Colors
 val Gray50 = Color(0xFFFAFAFA)
@@ -38,7 +42,7 @@ val Gray800 = Color(0xFF424242)
 val Gray900 = Color(0xFF212121)
 
 // Background Colors
-val BackgroundLight = Color(0xFFFFFFFF)
+val BackgroundLight = Color(0xFFFAFBF7)
 val BackgroundDark = Color(0xFF121212)
 val SurfaceLight = Color(0xFFFFFFFF)
 val SurfaceDark = Color(0xFF1E1E1E)

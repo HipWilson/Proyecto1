@@ -1,6 +1,8 @@
 package com.example.proyecto1.presentation.settings
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -9,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyecto1.R
@@ -34,13 +37,15 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Notifications Section
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -63,7 +68,8 @@ fun SettingsScreen(
                         Column {
                             Text(
                                 text = stringResource(R.string.settings_notifications),
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = stringResource(R.string.settings_notifications_description),
@@ -82,16 +88,19 @@ fun SettingsScreen(
             // Theme Section
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                Column(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.weight(1f)
                     ) {
                         Icon(
                             imageVector = if (state.isDarkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
@@ -100,24 +109,31 @@ fun SettingsScreen(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column {
                             Text(
                                 text = stringResource(R.string.settings_theme),
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (state.isDarkTheme) "Tema Oscuro" else "Tema Claro",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
-                            checked = state.isDarkTheme,
-                            onCheckedChange = viewModel::onThemeToggle
-                        )
                     }
+                    Switch(
+                        checked = state.isDarkTheme,
+                        onCheckedChange = viewModel::onThemeToggle
+                    )
                 }
             }
 
             // Language Section
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -136,7 +152,8 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
                             text = stringResource(R.string.settings_language),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
@@ -144,7 +161,7 @@ fun SettingsScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         FilterChip(
                             selected = state.selectedLanguage == "es",
@@ -152,7 +169,8 @@ fun SettingsScreen(
                             label = { Text(stringResource(R.string.settings_language_spanish)) },
                             leadingIcon = if (state.selectedLanguage == "es") {
                                 { Icon(Icons.Default.Check, contentDescription = null) }
-                            } else null
+                            } else null,
+                            modifier = Modifier.weight(1f)
                         )
 
                         FilterChip(
@@ -161,11 +179,14 @@ fun SettingsScreen(
                             label = { Text(stringResource(R.string.settings_language_english)) },
                             leadingIcon = if (state.selectedLanguage == "en") {
                                 { Icon(Icons.Default.Check, contentDescription = null) }
-                            } else null
+                            } else null,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

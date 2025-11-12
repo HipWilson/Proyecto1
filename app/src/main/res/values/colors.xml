@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Colors -->
-    <color name="primary">#1976D2</color>
-    <color name="primary_dark">#1565C0</color>
-    <color name="primary_light">#BBDEFB</color>
+    <!-- Primary Colors - Green -->
+    <color name="primary">#83bc41</color>
+    <color name="primary_dark">#6BA535</color>
+    <color name="primary_light">#C8E6C9</color>
 
-    <!-- Secondary Colors -->
-    <color name="secondary">#FF9800</color>
-    <color name="secondary_dark">#F57C00</color>
-    <color name="secondary_light">#FFE0B2</color>
+    <!-- Secondary Colors - Orange/Amber -->
+    <color name="secondary">#CC972C</color>
+    <color name="secondary_dark">#B8860B</color>
+    <color name="secondary_light">#FFD699</color>
+
+    <!-- Accent Colors -->
+    <color name="accent_teal">#00897B</color>
+    <color name="accent_light_green">#A4D65E</color>
 
     <!-- Status Colors -->
-    <color name="success">#4CAF50</color>
-    <color name="success_light">#81C784</color>
-    <color name="warning">#FFC107</color>
-    <color name="warning_light">#FFD54F</color>
-    <color name="error">#F44336</color>
-    <color name="error_light">#E57373</color>
+    <color name="success">#83bc41</color>
+    <color name="success_light">#C8E6C9</color>
+    <color name="warning">#CC972C</color>
+    <color name="warning_light">#FFD699</color>
+    <color name="error">#D32F2F</color>
+    <color name="error_light">#EF9A9A</color>
 
     <!-- Parking Status Colors -->
-    <color name="parking_available">#4CAF50</color>
-    <color name="parking_few_spots">#FFC107</color>
-    <color name="parking_full">#F44336</color>
+    <color name="parking_available">#83bc41</color>
+    <color name="parking_few_spots">#CC972C</color>
+    <color name="parking_full">#D32F2F</color>
 
     <!-- Neutral Colors -->
     <color name="black">#000000</color>
@@ -38,13 +42,13 @@
     <color name="gray_900">#212121</color>
 
     <!-- Background Colors -->
-    <color name="background_light">#FFFFFF</color>
+    <color name="background_light">#FAFBF7</color>
     <color name="background_dark">#121212</color>
     <color name="surface_light">#FFFFFF</color>
     <color name="surface_dark">#1E1E1E</color>
 
     <!-- Text Colors -->
-    <color name="text_primary_light">#000000</color>
+    <color name="text_primary_light">#212121</color>
     <color name="text_primary_dark">#FFFFFF</color>
     <color name="text_secondary_light">#757575</color>
     <color name="text_secondary_dark">#B0B0B0</color>

@@ -11,6 +11,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+// Theme State Management
+object ThemeState {
+    private val _isDarkTheme = MutableStateFlow(false)
+    val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
+
+    fun setDarkTheme(isDark: Boolean) {
+        _isDarkTheme.value = isDark
+    }
+
+    fun toggleTheme() {
+        _isDarkTheme.value = !_isDarkTheme.value
+    }
+
+    fun getCurrentTheme(): Boolean = _isDarkTheme.value
+}
 
 private val DarkColorScheme = darkColorScheme(
     primary = Primary,
@@ -23,7 +42,7 @@ private val DarkColorScheme = darkColorScheme(
     secondaryContainer = SecondaryDark,
     onSecondaryContainer = SecondaryLight,
 
-    tertiary = Success,
+    tertiary = AccentTeal,
     onTertiary = Color.White,
 
     error = Error,
@@ -54,7 +73,7 @@ private val LightColorScheme = lightColorScheme(
     secondaryContainer = SecondaryLight,
     onSecondaryContainer = SecondaryDark,
 
-    tertiary = Success,
+    tertiary = AccentTeal,
     onTertiary = Color.White,
 
     error = Error,

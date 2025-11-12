@@ -7,17 +7,21 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.proyecto1.presentation.navigation.NavGraph
 import com.example.proyecto1.ui.theme.Proyecto1Theme
+import com.example.proyecto1.ui.theme.ThemeState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Proyecto1Theme {
+            val isDarkTheme = ThemeState.isDarkTheme.collectAsState()
+
+            Proyecto1Theme(darkTheme = isDarkTheme.value) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
