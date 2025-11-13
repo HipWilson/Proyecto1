@@ -2,15 +2,17 @@ package com.example.proyecto1.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyecto1.domain.usecase.LoginUseCase
+import com.example.proyecto1.domain.repository.FirebaseAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.seconds
 
 class LoginViewModel(
-    private val loginUseCase: LoginUseCase = LoginUseCase()
+    private val authRepository: FirebaseAuthRepository = FirebaseAuthRepository()
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -30,24 +32,46 @@ class LoginViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
-            loginUseCase(_state.value.email, _state.value.password)
-                .onSuccess { user ->
+            try {
+                // Timeout de 30 segundos (Firebase puede ser lento)
+                val result = withTimeoutOrNull(30.seconds) {
+                    authRepository.login(_state.value.email, _state.value.password)
+                }
+
+                if (result != null) {
+                    result.onSuccess { user ->
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isLoginSuccessful = true,
+                                errorMessage = null
+                            )
+                        }
+                    }
+                        .onFailure { exception ->
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = exception.message ?: "Error al iniciar sesión"
+                                )
+                            }
+                        }
+                } else {
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            isLoginSuccessful = true,
-                            errorMessage = null
+                            errorMessage = "Tiempo de conexión agotado. Verifica tu conexión a internet."
                         )
                     }
                 }
-                .onFailure { exception ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = exception.message ?: "Error al iniciar sesión"
-                        )
-                    }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message ?: "Error inesperado al iniciar sesión"
+                    )
                 }
+            }
         }
     }
 

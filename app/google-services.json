@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "721869941151",
+    "project_id": "findmyspotuvg",
+    "storage_bucket": "findmyspotuvg.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721869941151:android:b25916332c22e6691175aa",
+        "android_client_info": {
+          "package_name": "com.example.proyecto1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAF3sWaIImidBiWMQ2B2BudkBJR3s4ASa0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

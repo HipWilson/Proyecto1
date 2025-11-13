@@ -2,12 +2,14 @@ package com.example.proyecto1.presentation.forgotpassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyecto1.domain.usecase.ForgotPasswordUseCase
+import com.example.proyecto1.domain.repository.FirebaseAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.withTimeoutOrNull
 
 data class ForgotPasswordState(
     val email: String = "",
@@ -18,7 +20,7 @@ data class ForgotPasswordState(
 )
 
 class ForgotPasswordViewModel(
-    private val forgotPasswordUseCase: ForgotPasswordUseCase = ForgotPasswordUseCase()
+    private val authRepository: FirebaseAuthRepository = FirebaseAuthRepository()
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ForgotPasswordState())
@@ -34,24 +36,45 @@ class ForgotPasswordViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
-            forgotPasswordUseCase(_state.value.email)
-                .onSuccess {
+            try {
+                val result = kotlinx.coroutines.withTimeoutOrNull(30.seconds) {
+                    authRepository.resetPassword(_state.value.email)
+                }
+
+                if (result != null) {
+                    result.onSuccess {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isSuccessful = true,
+                                errorMessage = null
+                            )
+                        }
+                    }
+                        .onFailure { exception ->
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = exception.message ?: "Error al enviar correo"
+                                )
+                            }
+                        }
+                } else {
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            isSuccessful = true,
-                            errorMessage = null
+                            errorMessage = "Tiempo de conexión agotado. Verifica tu conexión a internet."
                         )
                     }
                 }
-                .onFailure { exception ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = exception.message ?: "Error al enviar correo"
-                        )
-                    }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message ?: "Error inesperado"
+                    )
                 }
+            }
         }
     }
 

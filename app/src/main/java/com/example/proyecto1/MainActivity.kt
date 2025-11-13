@@ -13,10 +13,20 @@ import androidx.navigation.compose.rememberNavController
 import com.example.proyecto1.presentation.navigation.NavGraph
 import com.example.proyecto1.ui.theme.Proyecto1Theme
 import com.example.proyecto1.ui.theme.ThemeState
+import com.google.firebase.Firebase
+import com.google.firebase.initialize
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inicializar Firebase explícitamente
+        try {
+            Firebase.initialize(this)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         enableEdgeToEdge()
         setContent {
             val isDarkTheme = ThemeState.isDarkTheme.collectAsState()
