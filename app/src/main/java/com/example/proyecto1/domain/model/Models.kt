@@ -10,10 +10,13 @@ data class ParkingSpot(
     val id: String = "",
     val basementNumber: Int = 0,
     val totalSpaces: Int = 0,
-    val availableSpaces: Int = 0,
+    val occupiedSpaces: Int = 0, // Cambio: ahora es occupiedSpaces, no availableSpaces
     val latitude: Double = 0.0,
     val longitude: Double = 0.0
 ) {
+    val availableSpaces: Int
+        get() = totalSpaces - occupiedSpaces
+
     val status: ParkingStatus
         get() = when {
             availableSpaces == 0 -> ParkingStatus.FULL
@@ -23,7 +26,7 @@ data class ParkingSpot(
 
     val occupancyPercentage: Float
         get() = if (totalSpaces > 0) {
-            ((totalSpaces - availableSpaces).toFloat() / totalSpaces.toFloat()) * 100
+            (occupiedSpaces.toFloat() / totalSpaces.toFloat()) * 100
         } else 0f
 }
 
@@ -41,7 +44,8 @@ data class Reservation(
     val startTime: Long = 0L,
     val expirationTime: Long = 0L,
     val isActive: Boolean = false,
-    val isConfirmed: Boolean = false
+    val isConfirmed: Boolean = false,
+    val isCompleted: Boolean = false
 ) {
     val remainingMinutes: Int
         get() {
@@ -56,7 +60,9 @@ data class Reservation(
 
 data class ReservationHistory(
     val id: String = "",
+    val userId: String = "",
     val basementNumber: Int = 0,
     val date: Long = 0L,
-    val wasConfirmed: Boolean = false
+    val wasConfirmed: Boolean = false,
+    val duration: Long = 0L // en minutos
 )

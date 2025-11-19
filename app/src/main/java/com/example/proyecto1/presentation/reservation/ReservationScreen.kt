@@ -15,13 +15,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyecto1.R
 import com.example.proyecto1.presentation.common.CustomButton
 import com.example.proyecto1.presentation.common.CustomOutlinedButton
 import com.example.proyecto1.presentation.common.CustomTopAppBar
 import com.example.proyecto1.presentation.common.LoadingScreen
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,9 +39,9 @@ fun ReservationScreen(
         }
     }
 
-    LaunchedEffect(state.isConfirmed, state.isCancelled) {
-        if (state.isConfirmed || state.isCancelled) {
-            kotlinx.coroutines.delay(2000)
+    LaunchedEffect(state.isConfirmed, state.isCancelled, state.isCompleted) {
+        if (state.isConfirmed || state.isCancelled || state.isCompleted) {
+            delay(2000)
             onNavigateBack()
         }
     }
@@ -64,13 +64,16 @@ fun ReservationScreen(
             state.isCancelled -> {
                 CancelledScreen()
             }
+            state.isCompleted -> {
+                CompletedScreen()
+            }
             else -> {
                 ReservationContent(
+                    state = state,
                     basementNumber = basementNumber,
-                    remainingSeconds = state.remainingSeconds,
-                    isLoading = state.isLoading,
                     onConfirmArrival = viewModel::confirmArrival,
                     onCancelReservation = viewModel::cancelReservation,
+                    onMarkAsCompleted = viewModel::markAsCompleted,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -80,11 +83,11 @@ fun ReservationScreen(
 
 @Composable
 fun ReservationContent(
+    state: ReservationState,
     basementNumber: Int,
-    remainingSeconds: Int,
-    isLoading: Boolean,
     onConfirmArrival: () -> Unit,
     onCancelReservation: () -> Unit,
+    onMarkAsCompleted: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -130,7 +133,7 @@ fun ReservationContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = formatTime(remainingSeconds),
+                    text = formatTime(state.remainingSeconds),
                     style = MaterialTheme.typography.displayMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -146,7 +149,7 @@ fun ReservationContent(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        if (remainingSeconds == 0) {
+        if (state.remainingSeconds == 0 && !state.isConfirmed) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -161,11 +164,36 @@ fun ReservationContent(
                     textAlign = TextAlign.Center
                 )
             }
+        } else if (state.isConfirmed) {
+            // Mostrar opciones cuando ya confirmó llegada
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Text(
+                    text = "¡Ya estás en el parqueo!",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            CustomButton(
+                text = "Marcar como Desocupado",
+                onClick = onMarkAsCompleted,
+                isLoading = state.isLoading
+            )
         } else {
+            // Mostrar opciones iniciales
             CustomButton(
                 text = stringResource(R.string.reservation_confirm_arrival),
                 onClick = onConfirmArrival,
-                isLoading = isLoading
+                isLoading = state.isLoading
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -173,8 +201,26 @@ fun ReservationContent(
             CustomOutlinedButton(
                 text = stringResource(R.string.reservation_cancel),
                 onClick = onCancelReservation,
-                enabled = !isLoading
+                enabled = !state.isLoading
             )
+        }
+
+        if (state.errorMessage != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Text(
+                    text = state.errorMessage,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
@@ -234,6 +280,44 @@ fun CancelledScreen() {
 
             Text(
                 text = "Tu apartado ha sido cancelado exitosamente",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun CompletedScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                modifier = Modifier.size(120.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "¡Espacio Desocupado!",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Gracias por usar FindMySpot",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

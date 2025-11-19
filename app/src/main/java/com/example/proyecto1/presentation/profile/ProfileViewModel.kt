@@ -1,5 +1,6 @@
 package com.example.proyecto1.presentation.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyecto1.domain.repository.FirebaseAuthRepository
@@ -18,6 +19,10 @@ class ProfileViewModel(
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()
 
+    companion object {
+        private const val TAG = "ProfileViewModel"
+    }
+
     init {
         loadHistory()
     }
@@ -26,44 +31,59 @@ class ProfileViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
-            // Primero obtener el usuario actual
-            authRepository.getCurrentUser()
-                .onSuccess { user ->
-                    if (user != null) {
-                        _state.update { state ->
-                            state.copy(
-                                user = user,
-                                isLoading = false
+            try {
+                // Primero obtener el usuario actual
+                authRepository.getCurrentUser()
+                    .onSuccess { user ->
+                        if (user != null) {
+                            _state.update { state ->
+                                state.copy(
+                                    user = user,
+                                    isLoading = false
+                                )
+                            }
+
+                            // Luego obtener el historial desde Firebase
+                            getReservationHistoryUseCase(user.id)
+                                .onSuccess { history ->
+                                    _state.update {
+                                        it.copy(
+                                            history = history,
+                                            errorMessage = null,
+                                            isLoading = false
+                                        )
+                                    }
+                                    Log.d(TAG, "Historial cargado: ${history.size} registros")
+                                }
+                                .onFailure { exception ->
+                                    _state.update {
+                                        it.copy(
+                                            errorMessage = exception.message ?: "Error al cargar historial",
+                                            isLoading = false
+                                        )
+                                    }
+                                    Log.e(TAG, "Error obteniendo historial", exception)
+                                }
+                        }
+                    }
+                    .onFailure { exception ->
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = exception.message ?: "Error al cargar perfil"
                             )
                         }
-
-                        // Luego obtener el historial
-                        getReservationHistoryUseCase(user.id)
-                            .onSuccess { history ->
-                                _state.update {
-                                    it.copy(
-                                        history = history,
-                                        errorMessage = null
-                                    )
-                                }
-                            }
-                            .onFailure { exception ->
-                                _state.update {
-                                    it.copy(
-                                        errorMessage = exception.message ?: "Error al cargar historial"
-                                    )
-                                }
-                            }
+                        Log.e(TAG, "Error obteniendo usuario", exception)
                     }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message ?: "Error inesperado"
+                    )
                 }
-                .onFailure { exception ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = exception.message ?: "Error al cargar perfil"
-                        )
-                    }
-                }
+                Log.e(TAG, "Error en loadHistory", e)
+            }
         }
     }
 
