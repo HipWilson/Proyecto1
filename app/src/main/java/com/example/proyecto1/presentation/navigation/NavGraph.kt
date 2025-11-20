@@ -9,7 +9,6 @@ import androidx.navigation.navArgument
 import com.example.proyecto1.presentation.forgotpassword.ForgotPasswordScreen
 import com.example.proyecto1.presentation.login.LoginScreen
 import com.example.proyecto1.presentation.parkinglist.ParkingListScreen
-import com.example.proyecto1.presentation.parkingmap.ParkingMapScreen
 import com.example.proyecto1.presentation.profile.ProfileScreen
 import com.example.proyecto1.presentation.register.RegisterScreen
 import com.example.proyecto1.presentation.reservation.ReservationScreen
@@ -67,9 +66,6 @@ fun NavGraph(
         // Parking List Screen (Main)
         composable(route = Screen.ParkingList.route) {
             ParkingListScreen(
-                onNavigateToMap = {
-                    navController.navigate(Screen.ParkingMap.route)
-                },
                 onNavigateToReservation = { parkingId, basementNumber ->
                     navController.navigate(
                         Screen.Reservation.createRoute(parkingId, basementNumber)
@@ -80,15 +76,6 @@ fun NavGraph(
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
-                }
-            )
-        }
-
-        // Parking Map Screen
-        composable(route = Screen.ParkingMap.route) {
-            ParkingMapScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
                 }
             )
         }

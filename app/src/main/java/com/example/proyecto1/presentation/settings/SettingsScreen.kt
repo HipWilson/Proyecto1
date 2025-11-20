@@ -129,63 +129,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Language Section
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Language,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = stringResource(R.string.settings_language),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        FilterChip(
-                            selected = state.selectedLanguage == "es",
-                            onClick = { viewModel.onLanguageChange("es") },
-                            label = { Text(stringResource(R.string.settings_language_spanish)) },
-                            leadingIcon = if (state.selectedLanguage == "es") {
-                                { Icon(Icons.Default.Check, contentDescription = null) }
-                            } else null,
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        FilterChip(
-                            selected = state.selectedLanguage == "en",
-                            onClick = { viewModel.onLanguageChange("en") },
-                            label = { Text(stringResource(R.string.settings_language_english)) },
-                            leadingIcon = if (state.selectedLanguage == "en") {
-                                { Icon(Icons.Default.Check, contentDescription = null) }
-                            } else null,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

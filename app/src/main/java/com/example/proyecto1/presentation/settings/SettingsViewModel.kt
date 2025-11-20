@@ -24,8 +24,4 @@ class SettingsViewModel : ViewModel() {
         _state.update { it.copy(isDarkTheme = isDark) }
         ThemeState.setDarkTheme(isDark)
     }
-
-    fun onLanguageChange(language: String) {
-        _state.update { it.copy(selectedLanguage = language) }
-    }
 }

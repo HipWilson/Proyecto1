@@ -27,7 +27,6 @@ import com.example.proyecto1.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParkingListScreen(
-    onNavigateToMap: () -> Unit,
     onNavigateToReservation: (String, Int) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -111,18 +110,6 @@ fun ParkingListScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToMap,
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Map,
-                    contentDescription = stringResource(R.string.parking_list_view_map),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
         }
     ) { paddingValues ->
         when {
