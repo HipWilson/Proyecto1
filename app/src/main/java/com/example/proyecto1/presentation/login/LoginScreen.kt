@@ -8,15 +8,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyecto1.R
 import com.example.proyecto1.presentation.common.CustomButton
 import com.example.proyecto1.presentation.common.CustomTextField
+import com.example.proyecto1.ui.theme.rememberString
 
 @Composable
 fun LoginScreen(
@@ -46,7 +45,7 @@ fun LoginScreen(
         ) {
             // Logo/Title
             Text(
-                text = stringResource(R.string.app_name),
+                text = rememberString("app_name"),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -55,7 +54,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = stringResource(R.string.login_title),
+                text = rememberString("login_title"),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -66,7 +65,7 @@ fun LoginScreen(
             CustomTextField(
                 value = state.email,
                 onValueChange = viewModel::onEmailChange,
-                label = stringResource(R.string.login_email),
+                label = rememberString("login_email"),
                 leadingIcon = Icons.Default.Email,
                 keyboardType = KeyboardType.Email,
                 isError = state.emailError != null,
@@ -80,7 +79,7 @@ fun LoginScreen(
             CustomTextField(
                 value = state.password,
                 onValueChange = viewModel::onPasswordChange,
-                label = stringResource(R.string.login_password),
+                label = rememberString("login_password"),
                 leadingIcon = Icons.Default.Lock,
                 isPassword = true,
                 isError = state.passwordError != null,
@@ -97,7 +96,7 @@ fun LoginScreen(
                 enabled = !state.isLoading
             ) {
                 Text(
-                    text = stringResource(R.string.login_forgot_password),
+                    text = rememberString("login_forgot_password"),
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -106,7 +105,7 @@ fun LoginScreen(
 
             // Login Button
             CustomButton(
-                text = stringResource(R.string.login_button),
+                text = rememberString("login_button"),
                 onClick = viewModel::onLoginClick,
                 isLoading = state.isLoading
             )
@@ -130,7 +129,7 @@ fun LoginScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.login_no_account),
+                    text = rememberString("login_no_account"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -140,7 +139,7 @@ fun LoginScreen(
                     enabled = !state.isLoading
                 ) {
                     Text(
-                        text = stringResource(R.string.login_register),
+                        text = rememberString("login_register"),
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )

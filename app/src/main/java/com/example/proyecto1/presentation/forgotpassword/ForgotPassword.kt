@@ -8,15 +8,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyecto1.R
 import com.example.proyecto1.presentation.common.CustomButton
 import com.example.proyecto1.presentation.common.CustomTextField
 import com.example.proyecto1.presentation.common.CustomTopAppBar
+import com.example.proyecto1.ui.theme.rememberString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +28,7 @@ fun ForgotPasswordScreen(
     Scaffold(
         topBar = {
             CustomTopAppBar(
-                title = stringResource(R.string.forgot_password_title),
+                title = rememberString("forgot_password_title"),
                 onNavigationClick = onNavigateBack
             )
         }
@@ -56,7 +55,7 @@ fun ForgotPasswordScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = stringResource(R.string.forgot_password_success),
+                        text = rememberString("forgot_password_success"),
                         style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center
                     )
@@ -73,7 +72,7 @@ fun ForgotPasswordScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     CustomButton(
-                        text = stringResource(R.string.forgot_password_back_to_login),
+                        text = rememberString("forgot_password_back_to_login"),
                         onClick = onNavigateBack
                     )
                 }
@@ -86,7 +85,7 @@ fun ForgotPasswordScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = stringResource(R.string.forgot_password_description),
+                        text = rememberString("forgot_password_description"),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -97,7 +96,7 @@ fun ForgotPasswordScreen(
                     CustomTextField(
                         value = state.email,
                         onValueChange = viewModel::onEmailChange,
-                        label = stringResource(R.string.forgot_password_email),
+                        label = rememberString("forgot_password_email"),
                         leadingIcon = Icons.Default.Email,
                         keyboardType = KeyboardType.Email,
                         isError = state.emailError != null,
@@ -108,7 +107,7 @@ fun ForgotPasswordScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     CustomButton(
-                        text = stringResource(R.string.forgot_password_button),
+                        text = rememberString("forgot_password_button"),
                         onClick = viewModel::onSendClick,
                         isLoading = state.isLoading
                     )
@@ -127,7 +126,7 @@ fun ForgotPasswordScreen(
 
                     TextButton(onClick = onNavigateBack, enabled = !state.isLoading) {
                         Text(
-                            text = stringResource(R.string.forgot_password_back_to_login),
+                            text = rememberString("forgot_password_back_to_login"),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }

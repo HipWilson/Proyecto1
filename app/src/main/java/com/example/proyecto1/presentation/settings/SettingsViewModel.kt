@@ -1,6 +1,8 @@
 package com.example.proyecto1.presentation.settings
 
 import androidx.lifecycle.ViewModel
+import com.example.proyecto1.ui.theme.Language
+import com.example.proyecto1.ui.theme.LanguageState
 import com.example.proyecto1.ui.theme.ThemeState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +15,12 @@ class SettingsViewModel : ViewModel() {
     val state: StateFlow<SettingsState> = _state.asStateFlow()
 
     init {
-        _state.update { it.copy(isDarkTheme = ThemeState.getCurrentTheme()) }
+        _state.update {
+            it.copy(
+                isDarkTheme = ThemeState.getCurrentTheme(),
+                currentLanguage = LanguageState.getCurrentLanguage()
+            )
+        }
     }
 
     fun onNotificationsToggle(enabled: Boolean) {
@@ -23,5 +30,10 @@ class SettingsViewModel : ViewModel() {
     fun onThemeToggle(isDark: Boolean) {
         _state.update { it.copy(isDarkTheme = isDark) }
         ThemeState.setDarkTheme(isDark)
+    }
+
+    fun onLanguageChange(language: Language) {
+        _state.update { it.copy(currentLanguage = language) }
+        LanguageState.setLanguage(language)
     }
 }

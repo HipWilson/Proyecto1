@@ -12,15 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyecto1.R
 import com.example.proyecto1.presentation.common.CustomButton
 import com.example.proyecto1.presentation.common.CustomOutlinedButton
 import com.example.proyecto1.presentation.common.LoadingScreen
+import com.example.proyecto1.ui.theme.rememberString
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +48,7 @@ fun ReservationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.reservation_title)) },
+                title = { Text(rememberString("reservation_title")) },
                 navigationIcon = {
                     if (!state.isConfirmed) {
                         IconButton(onClick = onNavigateBack) {
@@ -116,7 +115,7 @@ fun ReservationContent(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = stringResource(R.string.reservation_description),
+            text = rememberString("reservation_description"),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
@@ -124,7 +123,7 @@ fun ReservationContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = stringResource(R.string.parking_list_basement, basementNumber),
+            text = rememberString("parking_list_basement", basementNumber),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -157,7 +156,7 @@ fun ReservationContent(
                 )
 
                 Text(
-                    text = stringResource(R.string.reservation_time_remaining),
+                    text = rememberString("reservation_time_remaining"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -174,7 +173,7 @@ fun ReservationContent(
                 )
             ) {
                 Text(
-                    text = stringResource(R.string.reservation_expired),
+                    text = rememberString("reservation_expired"),
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer,
@@ -183,7 +182,7 @@ fun ReservationContent(
             }
         } else {
             CustomButton(
-                text = stringResource(R.string.reservation_confirm_arrival),
+                text = rememberString("reservation_confirm_arrival"),
                 onClick = onConfirmArrival,
                 isLoading = state.isLoading
             )
@@ -191,7 +190,7 @@ fun ReservationContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             CustomOutlinedButton(
-                text = stringResource(R.string.reservation_cancel),
+                text = rememberString("reservation_cancel"),
                 onClick = onCancelReservation,
                 enabled = !state.isLoading
             )

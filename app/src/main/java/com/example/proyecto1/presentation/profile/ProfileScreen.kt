@@ -10,15 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyecto1.R
 import com.example.proyecto1.domain.model.ReservationHistory
 import com.example.proyecto1.presentation.common.CustomButton
 import com.example.proyecto1.presentation.common.CustomTopAppBar
 import com.example.proyecto1.presentation.common.LoadingScreen
+import com.example.proyecto1.ui.theme.rememberString
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -44,12 +43,12 @@ fun ProfileScreen(
                         onLogout()
                     }
                 ) {
-                    Text("Sí")
+                    Text(rememberString("common_accept"))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancelar")
+                    Text(rememberString("common_cancel"))
                 }
             }
         )
@@ -58,7 +57,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CustomTopAppBar(
-                title = stringResource(R.string.profile_title),
+                title = rememberString("profile_title"),
                 onNavigationClick = onNavigateBack
             )
         }
@@ -115,7 +114,7 @@ fun ProfileScreen(
                 // History Section
                 item {
                     Text(
-                        text = stringResource(R.string.profile_history),
+                        text = rememberString("profile_history"),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -134,7 +133,7 @@ fun ProfileScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = stringResource(R.string.profile_no_history),
+                                    text = rememberString("profile_no_history"),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -151,7 +150,7 @@ fun ProfileScreen(
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                     CustomButton(
-                        text = stringResource(R.string.profile_logout),
+                        text = rememberString("profile_logout"),
                         onClick = { showLogoutDialog = true },
                         containerColor = MaterialTheme.colorScheme.error
                     )
@@ -207,7 +206,7 @@ fun HistoryCard(history: ReservationHistory) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Sótano ${history.basementNumber}",
+                        text = rememberString("parking_list_basement", history.basementNumber),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

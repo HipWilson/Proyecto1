@@ -13,11 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyecto1.R
 import com.example.proyecto1.domain.model.ParkingSpot
 import com.example.proyecto1.domain.model.ParkingStatus
 import com.example.proyecto1.presentation.common.ErrorMessage
@@ -40,7 +38,7 @@ fun ParkingListScreen(
         AlertDialog(
             onDismissRequest = { showCompleteDialog = false },
             title = {
-                Text("Marcar espacio como desocupado")
+                Text(rememberString("common_accept"))
             },
             text = {
                 Column {
@@ -86,7 +84,7 @@ fun ParkingListScreen(
                     onClick = { showCompleteDialog = false },
                     enabled = !isCompletingReservation
                 ) {
-                    Text("Cancelar")
+                    Text(rememberString("common_cancel"))
                 }
             }
         )
@@ -95,7 +93,7 @@ fun ParkingListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.parking_list_title)) },
+                title = { Text(rememberString("parking_list_title")) },
                 actions = {
                     IconButton(onClick = onNavigateToProfile) {
                         Icon(Icons.Default.Person, contentDescription = "Perfil")
@@ -199,7 +197,7 @@ fun ParkingListContent(
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Marcar como desocupado")
+                            Text(rememberString("common_accept"))
                         }
                     }
                 }
@@ -229,9 +227,9 @@ fun ParkingCard(
     }
 
     val statusText = when (parkingSpot.status) {
-        ParkingStatus.AVAILABLE -> stringResource(R.string.parking_list_available)
-        ParkingStatus.FEW_SPOTS -> stringResource(R.string.parking_list_few_spots)
-        ParkingStatus.FULL -> stringResource(R.string.parking_list_full)
+        ParkingStatus.AVAILABLE -> rememberString("parking_list_available")
+        ParkingStatus.FEW_SPOTS -> rememberString("parking_list_few_spots")
+        ParkingStatus.FULL -> rememberString("parking_list_full")
     }
 
     Card(
@@ -253,7 +251,7 @@ fun ParkingCard(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.parking_list_basement, parkingSpot.basementNumber),
+                    text = rememberString("parking_list_basement", parkingSpot.basementNumber),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -333,7 +331,7 @@ fun ParkingCard(
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.parking_list_full))
+                            Text(rememberString("parking_list_full"))
                         }
                     }
                     else -> {
@@ -350,7 +348,7 @@ fun ParkingCard(
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.parking_list_reserve))
+                            Text(rememberString("parking_list_reserve"))
                         }
                     }
                 }
