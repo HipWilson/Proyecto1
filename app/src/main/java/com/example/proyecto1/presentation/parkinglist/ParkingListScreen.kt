@@ -20,7 +20,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyecto1.R
 import com.example.proyecto1.domain.model.ParkingSpot
 import com.example.proyecto1.domain.model.ParkingStatus
-import com.example.proyecto1.presentation.common.CustomButton
 import com.example.proyecto1.presentation.common.ErrorMessage
 import com.example.proyecto1.presentation.common.LoadingScreen
 import com.example.proyecto1.ui.theme.*
@@ -35,6 +34,64 @@ fun ParkingListScreen(
     viewModel: ParkingListViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var showCompleteDialog by remember { mutableStateOf(false) }
+    var isCompletingReservation by remember { mutableStateOf(false) }
+
+    if (showCompleteDialog && state.activeReservationId != null && state.activeReservationBasement != null) {
+        AlertDialog(
+            onDismissRequest = { showCompleteDialog = false },
+            title = {
+                Text("Marcar espacio como desocupado")
+            },
+            text = {
+                Column {
+                    Text(
+                        "¿Estás seguro de que deseas marcar el espacio del Sótano ${state.activeReservationBasement} como desocupado?",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Esta acción finalizará tu apartado y registrará el evento en tu historial.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        isCompletingReservation = true
+                        viewModel.completeActiveReservation {
+                            isCompletingReservation = false
+                            showCompleteDialog = false
+                        }
+                    },
+                    enabled = !isCompletingReservation,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    if (isCompletingReservation) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onError,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Sí, desocupar")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showCompleteDialog = false },
+                    enabled = !isCompletingReservation
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -82,6 +139,9 @@ fun ParkingListScreen(
                 ParkingListContent(
                     parkingSpots = state.parkingSpots,
                     onReserveClick = onNavigateToReservation,
+                    hasActiveReservation = state.hasActiveReservation,
+                    activeReservationMessage = viewModel.getActiveReservationMessage(),
+                    onCompleteReservationClick = { showCompleteDialog = true },
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -93,6 +153,9 @@ fun ParkingListScreen(
 fun ParkingListContent(
     parkingSpots: List<ParkingSpot>,
     onReserveClick: (String, Int) -> Unit,
+    hasActiveReservation: Boolean,
+    activeReservationMessage: String,
+    onCompleteReservationClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -101,10 +164,66 @@ fun ParkingListContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        if (hasActiveReservation) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Text(
+                                text = activeReservationMessage,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+                            onClick = onCompleteReservationClick,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Marcar como desocupado")
+                        }
+                    }
+                }
+            }
+        }
+
         items(parkingSpots) { spot ->
             ParkingCard(
                 parkingSpot = spot,
-                onReserveClick = { onReserveClick(spot.id, spot.basementNumber) }
+                onReserveClick = { onReserveClick(spot.id, spot.basementNumber) },
+                isBlockedByActiveReservation = hasActiveReservation
             )
         }
     }
@@ -113,7 +232,8 @@ fun ParkingListContent(
 @Composable
 fun ParkingCard(
     parkingSpot: ParkingSpot,
-    onReserveClick: () -> Unit
+    onReserveClick: () -> Unit,
+    isBlockedByActiveReservation: Boolean = false
 ) {
     val statusColor = when (parkingSpot.status) {
         ParkingStatus.AVAILABLE -> ParkingAvailable
@@ -141,12 +261,10 @@ fun ParkingCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left Section - Info
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Basement Number
                 Text(
                     text = stringResource(R.string.parking_list_basement, parkingSpot.basementNumber),
                     style = MaterialTheme.typography.headlineMedium,
@@ -156,7 +274,6 @@ fun ParkingCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Status Indicator
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
@@ -175,7 +292,6 @@ fun ParkingCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Available Spaces
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.LocalParking,
@@ -192,43 +308,63 @@ fun ParkingCard(
                 }
             }
 
-            // Right Section - Action Button
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
             ) {
-                if (parkingSpot.status != ParkingStatus.FULL) {
-                    Button(
-                        onClick = onReserveClick,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.BookmarkAdd,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.parking_list_reserve))
+                when {
+                    isBlockedByActiveReservation -> {
+                        Button(
+                            onClick = { },
+                            enabled = false,
+                            colors = ButtonDefaults.buttonColors(
+                                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Block,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Bloqueado")
+                        }
                     }
-                } else {
-                    Button(
-                        onClick = { /* No action for full parking */ },
-                        enabled = false,
-                        colors = ButtonDefaults.buttonColors(
-                            disabledContainerColor = MaterialTheme.colorScheme.errorContainer
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Block,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.parking_list_full))
+                    parkingSpot.status == ParkingStatus.FULL -> {
+                        Button(
+                            onClick = { },
+                            enabled = false,
+                            colors = ButtonDefaults.buttonColors(
+                                disabledContainerColor = MaterialTheme.colorScheme.errorContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Block,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.parking_list_full))
+                        }
+                    }
+                    else -> {
+                        Button(
+                            onClick = onReserveClick,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.BookmarkAdd,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.parking_list_reserve))
+                        }
                     }
                 }
             }

@@ -32,20 +32,20 @@ class ProfileViewModel(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
-                // Primero obtener el usuario actual
                 authRepository.getCurrentUser()
                     .onSuccess { user ->
                         if (user != null) {
+                            Log.d(TAG, "Usuario actual obtenido: ${user.id}")
                             _state.update { state ->
-                                state.copy(
-                                    user = user,
-                                    isLoading = false
-                                )
+                                state.copy(user = user)
                             }
 
-                            // Luego obtener el historial desde Firebase
                             getReservationHistoryUseCase(user.id)
                                 .onSuccess { history ->
+                                    Log.d(TAG, "Historial obtenido: ${history.size} registros")
+                                    history.forEach { h ->
+                                        Log.d(TAG, "Historial item: Sótano ${h.basementNumber}, Confirmado: ${h.wasConfirmed}, Duración: ${h.duration}")
+                                    }
                                     _state.update {
                                         it.copy(
                                             history = history,
@@ -53,36 +53,44 @@ class ProfileViewModel(
                                             isLoading = false
                                         )
                                     }
-                                    Log.d(TAG, "Historial cargado: ${history.size} registros")
                                 }
                                 .onFailure { exception ->
+                                    Log.e(TAG, "Error obteniendo historial: ${exception.message}", exception)
                                     _state.update {
                                         it.copy(
                                             errorMessage = exception.message ?: "Error al cargar historial",
-                                            isLoading = false
+                                            isLoading = false,
+                                            history = emptyList()
                                         )
                                     }
-                                    Log.e(TAG, "Error obteniendo historial", exception)
                                 }
+                        } else {
+                            Log.d(TAG, "No hay usuario autenticado")
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = "No hay usuario autenticado"
+                                )
+                            }
                         }
                     }
                     .onFailure { exception ->
+                        Log.e(TAG, "Error obteniendo usuario: ${exception.message}", exception)
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 errorMessage = exception.message ?: "Error al cargar perfil"
                             )
                         }
-                        Log.e(TAG, "Error obteniendo usuario", exception)
                     }
             } catch (e: Exception) {
+                Log.e(TAG, "Error inesperado en loadHistory: ${e.message}", e)
                 _state.update {
                     it.copy(
                         isLoading = false,
                         errorMessage = e.message ?: "Error inesperado"
                     )
                 }
-                Log.e(TAG, "Error en loadHistory", e)
             }
         }
     }

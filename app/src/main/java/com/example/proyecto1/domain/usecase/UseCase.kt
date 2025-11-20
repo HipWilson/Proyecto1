@@ -1,5 +1,6 @@
 package com.example.proyecto1.domain.usecase
 
+import android.util.Log
 import com.example.proyecto1.domain.model.ParkingSpot
 import com.example.proyecto1.domain.model.Reservation
 import com.example.proyecto1.domain.model.ReservationHistory
@@ -9,8 +10,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-
-// ==================== PARKING SPOTS ====================
 
 class GetParkingSpotsUseCase {
     operator fun invoke(): Flow<List<ParkingSpot>> = callbackFlow {
@@ -50,7 +49,42 @@ class GetParkingSpotsUseCase {
     }
 }
 
-// ==================== RESERVATIONS ====================
+class GetActiveReservationUseCase {
+    suspend operator fun invoke(userId: String): Result<Reservation?> {
+        return try {
+            val firestore = FirebaseFirestore.getInstance()
+
+            val snapshot = firestore.collection("reservations")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("isActive", true)
+                .get()
+                .await()
+
+            if (snapshot.documents.isNotEmpty()) {
+                val doc = snapshot.documents[0]
+                val reservation = Reservation(
+                    id = doc.id,
+                    userId = doc.getString("userId") ?: "",
+                    parkingSpotId = doc.getString("parkingSpotId") ?: "",
+                    basementNumber = (doc.getLong("basementNumber") ?: 0L).toInt(),
+                    startTime = doc.getLong("startTime") ?: 0L,
+                    expirationTime = doc.getLong("expirationTime") ?: 0L,
+                    isActive = doc.getBoolean("isActive") ?: false,
+                    isConfirmed = doc.getBoolean("isConfirmed") ?: false,
+                    isCompleted = doc.getBoolean("isCompleted") ?: false
+                )
+                Log.d("GetActiveReservationUseCase", "Reserva activa encontrada: ${reservation.id}")
+                Result.success(reservation)
+            } else {
+                Log.d("GetActiveReservationUseCase", "No hay reservas activas para $userId")
+                Result.success(null)
+            }
+        } catch (e: Exception) {
+            Log.e("GetActiveReservationUseCase", "Error obteniendo reserva activa", e)
+            Result.failure(e)
+        }
+    }
+}
 
 class ReserveParkingSpotUseCase(
     private val parkingRepository: FirebaseParkingRepository = FirebaseParkingRepository()
@@ -84,8 +118,6 @@ class MarkAsCompletedUseCase(
     }
 }
 
-// ==================== HISTORY ====================
-
 class GetReservationHistoryUseCase(
     private val parkingRepository: FirebaseParkingRepository = FirebaseParkingRepository()
 ) {
@@ -93,8 +125,6 @@ class GetReservationHistoryUseCase(
         return parkingRepository.getReservationHistory(userId)
     }
 }
-
-// ==================== LEGACY (Mantener para compatibilidad) ====================
 
 class LoginUseCase {
     suspend operator fun invoke(email: String, password: String): Result<com.example.proyecto1.domain.model.User> {

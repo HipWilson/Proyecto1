@@ -42,13 +42,12 @@ class FirebaseParkingRepository(
                 parkingSpotId = parkingSpotId,
                 basementNumber = basementNumber,
                 startTime = now,
-                expirationTime = now + (5 * 60 * 1000), // 5 minutos
+                expirationTime = now + (5 * 60 * 1000),
                 isActive = true,
                 isConfirmed = false,
                 isCompleted = false
             )
 
-            // Guardar reservación
             firestore.collection(RESERVATIONS_COLLECTION).document(reservationId).set(
                 mapOf(
                     "userId" to userId,
@@ -62,7 +61,6 @@ class FirebaseParkingRepository(
                 )
             ).await()
 
-            // Incrementar espacios ocupados
             firestore.collection(PARKING_COLLECTION).document(parkingSpotId)
                 .update("occupiedSpaces", FieldValue.increment(1)).await()
 
@@ -89,7 +87,6 @@ class FirebaseParkingRepository(
 
     override suspend fun markAsCompleted(reservationId: String, parkingSpotId: String): Result<Unit> {
         return try {
-            // Obtener la reservación
             val doc = firestore.collection(RESERVATIONS_COLLECTION).document(reservationId).get().await()
             val reservation = doc.data
 
@@ -99,18 +96,15 @@ class FirebaseParkingRepository(
                 val startTime = reservation["startTime"] as? Long ?: System.currentTimeMillis()
                 val isConfirmed = reservation["isConfirmed"] as? Boolean ?: false
 
-                // Decrementar espacios ocupados
                 firestore.collection(PARKING_COLLECTION).document(parkingSpotId)
                     .update("occupiedSpaces", FieldValue.increment(-1)).await()
 
-                // Marcar como completado
                 firestore.collection(RESERVATIONS_COLLECTION).document(reservationId)
                     .update(mapOf(
                         "isCompleted" to true,
                         "isActive" to false
                     )).await()
 
-                // Guardar en historial
                 val historyId = firestore.collection(HISTORY_COLLECTION).document().id
                 val duration = (System.currentTimeMillis() - startTime) / 1000 / 60
 
@@ -136,11 +130,9 @@ class FirebaseParkingRepository(
 
     override suspend fun cancelReservation(reservationId: String, parkingSpotId: String): Result<Unit> {
         return try {
-            // Decrementar espacios ocupados
             firestore.collection(PARKING_COLLECTION).document(parkingSpotId)
                 .update("occupiedSpaces", FieldValue.increment(-1)).await()
 
-            // Eliminar o marcar como cancelada
             firestore.collection(RESERVATIONS_COLLECTION).document(reservationId)
                 .update(mapOf(
                     "isActive" to false,
@@ -159,25 +151,26 @@ class FirebaseParkingRepository(
         return try {
             val snapshot = firestore.collection(HISTORY_COLLECTION)
                 .whereEqualTo("userId", userId)
-                .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .await()
 
-            val history = snapshot.documents.mapNotNull { doc ->
-                try {
-                    ReservationHistory(
-                        id = doc.id,
-                        userId = userId,
-                        basementNumber = (doc.getLong("basementNumber") ?: 0L).toInt(),
-                        date = doc.getLong("date") ?: 0L,
-                        wasConfirmed = doc.getBoolean("wasConfirmed") ?: false,
-                        duration = doc.getLong("duration") ?: 0L
-                    )
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error mapeando historial", e)
-                    null
+            val history = snapshot.documents
+                .mapNotNull { doc ->
+                    try {
+                        ReservationHistory(
+                            id = doc.id,
+                            userId = userId,
+                            basementNumber = (doc.getLong("basementNumber") ?: 0L).toInt(),
+                            date = doc.getLong("date") ?: 0L,
+                            wasConfirmed = doc.getBoolean("wasConfirmed") ?: false,
+                            duration = doc.getLong("duration") ?: 0L
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error mapeando historial", e)
+                        null
+                    }
                 }
-            }
+                .sortedByDescending { it.date }
 
             Log.d(TAG, "Historial obtenido: ${history.size} registros")
             Result.success(history)

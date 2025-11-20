@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +20,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyecto1.R
 import com.example.proyecto1.presentation.common.CustomButton
 import com.example.proyecto1.presentation.common.CustomOutlinedButton
-import com.example.proyecto1.presentation.common.CustomTopAppBar
 import com.example.proyecto1.presentation.common.LoadingScreen
 import kotlinx.coroutines.delay
 
@@ -39,8 +39,8 @@ fun ReservationScreen(
         }
     }
 
-    LaunchedEffect(state.isConfirmed, state.isCancelled, state.isCompleted) {
-        if (state.isConfirmed || state.isCancelled || state.isCompleted) {
+    LaunchedEffect(state.isCancelled, state.isCompleted) {
+        if (state.isCancelled || state.isCompleted) {
             delay(2000)
             onNavigateBack()
         }
@@ -48,9 +48,23 @@ fun ReservationScreen(
 
     Scaffold(
         topBar = {
-            CustomTopAppBar(
-                title = stringResource(R.string.reservation_title),
-                onNavigationClick = onNavigateBack
+            TopAppBar(
+                title = { Text(stringResource(R.string.reservation_title)) },
+                navigationIcon = {
+                    if (!state.isConfirmed) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Atrás"
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         }
     ) { paddingValues ->
@@ -58,14 +72,20 @@ fun ReservationScreen(
             state.isLoading && state.reservation == null -> {
                 LoadingScreen()
             }
-            state.isConfirmed -> {
-                ConfirmedScreen()
-            }
             state.isCancelled -> {
                 CancelledScreen()
             }
             state.isCompleted -> {
                 CompletedScreen()
+            }
+            state.isConfirmed -> {
+                ConfirmedArrivalScreen(
+                    basementNumber = basementNumber,
+                    onMarkAsCompleted = viewModel::markAsCompleted,
+                    isLoading = state.isLoading,
+                    errorMessage = state.errorMessage,
+                    modifier = Modifier.padding(paddingValues)
+                )
             }
             else -> {
                 ReservationContent(
@@ -73,7 +93,6 @@ fun ReservationScreen(
                     basementNumber = basementNumber,
                     onConfirmArrival = viewModel::confirmArrival,
                     onCancelReservation = viewModel::cancelReservation,
-                    onMarkAsCompleted = viewModel::markAsCompleted,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -87,7 +106,6 @@ fun ReservationContent(
     basementNumber: Int,
     onConfirmArrival: () -> Unit,
     onCancelReservation: () -> Unit,
-    onMarkAsCompleted: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -114,7 +132,6 @@ fun ReservationContent(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Timer
         Box(
             modifier = Modifier
                 .size(180.dp)
@@ -164,32 +181,7 @@ fun ReservationContent(
                     textAlign = TextAlign.Center
                 )
             }
-        } else if (state.isConfirmed) {
-            // Mostrar opciones cuando ya confirmó llegada
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Text(
-                    text = "¡Ya estás en el parqueo!",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            CustomButton(
-                text = "Marcar como Desocupado",
-                onClick = onMarkAsCompleted,
-                isLoading = state.isLoading
-            )
         } else {
-            // Mostrar opciones iniciales
             CustomButton(
                 text = stringResource(R.string.reservation_confirm_arrival),
                 onClick = onConfirmArrival,
@@ -226,35 +218,119 @@ fun ReservationContent(
 }
 
 @Composable
-fun ConfirmedScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun ConfirmedArrivalScreen(
+    basementNumber: Int,
+    onMarkAsCompleted: () -> Unit,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
-                modifier = Modifier.size(120.dp),
+                modifier = Modifier.size(80.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
+        }
 
-            Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = stringResource(R.string.reservation_confirmed),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+        Text(
+            text = "¡Bienvenido!",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Tu llegada al Sótano $basementNumber ha sido confirmada",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Estacionado",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Disfruta tu estancia. Cuando te vayas, marca tu espacio como desocupado.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(48.dp))
 
-            Text(
-                text = "¡Disfruta tu espacio!",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        Text(
+            text = "Cuando abandones el sótano, presiona el botón de abajo",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        CustomButton(
+            text = "Marcar como Desocupado",
+            onClick = onMarkAsCompleted,
+            isLoading = isLoading,
+            containerColor = MaterialTheme.colorScheme.error
+        )
+
+        if (errorMessage != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Text(
+                    text = errorMessage,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

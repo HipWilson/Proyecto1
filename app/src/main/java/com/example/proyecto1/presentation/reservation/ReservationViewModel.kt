@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyecto1.domain.model.Reservation
 import com.example.proyecto1.domain.repository.FirebaseAuthRepository
-import com.example.proyecto1.domain.repository.FirebaseParkingRepository
 import com.example.proyecto1.domain.usecase.CancelReservationUseCase
 import com.example.proyecto1.domain.usecase.ConfirmArrivalUseCase
 import com.example.proyecto1.domain.usecase.MarkAsCompletedUseCase
@@ -19,7 +18,7 @@ import kotlinx.coroutines.launch
 
 data class ReservationState(
     val reservation: Reservation? = null,
-    val remainingSeconds: Int = 300, // 5 minutos
+    val remainingSeconds: Int = 300,
     val isLoading: Boolean = false,
     val isConfirmed: Boolean = false,
     val isCancelled: Boolean = false,
@@ -47,7 +46,6 @@ class ReservationViewModel(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
-                // Obtener el usuario actual
                 val userResult = authRepository.getCurrentUser()
                 userResult.onSuccess { user ->
                     if (user != null) {
