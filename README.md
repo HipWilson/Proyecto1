@@ -219,13 +219,5 @@ Este proyecto me ayudó a aprender:
 
 ## Créditos
 
-Proyecto desarrollado por [tu nombre] para el curso de Plataformas Móviles - UVG
+Proyecto desarrollado por Wilson Peña y Dally Ramirez para el curso de Plataformas Móviles - UVG
 
----
-
-**Nota**: Esta es una versión de demostración. Para producción habría que:
-- Agregar reglas de seguridad más estrictas en Firestore
-- Implementar rate limiting
-- Agregar analytics
-- Mejorar manejo de errores
-- Y probablemente muchas cosas más que descubriría en el camino 🚀
