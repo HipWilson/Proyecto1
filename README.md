@@ -17,12 +17,12 @@ Pueden ver la app funcionando aquí: [https://youtube.com/shorts/BNY9Sn2WGro](ht
 - **Confirmación de llegada**: Cuando llegas, confirmas tu llegada y el espacio queda marcado como ocupado
 - **Historial**: Guarda todos tus parqueos anteriores con fecha, duración y si confirmaste o no
 - **Tema oscuro/claro**: Puedes cambiar entre tema claro y oscuro
-- **Multiidioma**: Español e inglés (aunque admito que el inglés no lo uso mucho 😅)
+- **Multiidioma**: Español e inglés 
 
 ## Tecnologías que usé
 
 - **Kotlin**: Todo el código está en Kotlin
-- **Jetpack Compose**: Para la UI (nada de XMLs antiguos)
+- **Jetpack Compose**: Para la UI 
 - **Firebase Auth**: Para login y registro de usuarios
 - **Firebase Firestore**: Base de datos en la nube para parqueos y reservaciones
 - **MVVM**: Arquitectura con ViewModels y StateFlow
@@ -99,7 +99,7 @@ Originalmente iba a simular todo local, pero decidí usar Firebase para que fuer
 Decidí que solo puedas tener 1 apartado activo porque:
 - Evita que alguien aparte múltiples espacios
 - Es más justo para todos
-- En la vida real tampoco puedes estar en dos lugares a la vez 🤷‍♂️
+- En la vida real tampoco puedes estar en dos lugares a la vez 
 
 ### Flows en tiempo real
 Usé Firestore listeners para que los cambios se reflejen automáticamente. Si alguien aparta un espacio, todos lo ven de inmediato sin tener que hacer refresh.
@@ -140,7 +140,6 @@ Implementé validaciones tanto en el frontend como en el backend:
 - [ ] Sistema de favoritos para sótanos
 - [ ] Estadísticas (cuál sótano usas más, a qué horas, etc.)
 - [ ] Modo offline más robusto
-- [ ] Tests unitarios (lo sé, lo sé... 😅)
 
 ## Requisitos para correr el proyecto
 
@@ -209,13 +208,13 @@ cd Proyecto1
 
 Este proyecto me ayudó a aprender:
 - Cómo estructurar una app Android moderna
-- Integración real con Firebase (no solo tutoriales)
+- Integración real con Firebase 
 - Manejo de estados complejos con Compose
 - Flujos de tiempo real con Firestore
 - Arquitectura MVVM en la práctica
 - Navegación con argumentos en Compose
 - Manejo de errores y casos edge
-- Y sobre todo: **la importancia de probar con usuarios reales** (mis compañeros encontraron bugs que nunca imaginé 😂)
+- Y sobre todo: **la importancia de probar con usuarios reales** 
 
 ## Créditos
 
