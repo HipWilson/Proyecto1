@@ -1,242 +1,231 @@
 # FindMySpot UVG
 
-Una aplicación Android nativa para la gestión de espacios de estacionamiento en la Universidad Valle de Guatemala, desarrollada con Jetpack Compose y arquitectura moderna.
+Una app Android para encontrar parqueo en la UVG, desarrollada con Jetpack Compose y Firebase.
 
-## Descripción General
+## ¿Qué es esto?
 
-FindMySpot es una solución integral que permite a los estudiantes de UVG consultar disponibilidad de estacionamiento en tiempo real, hacer reservas simbólicas, confirmar llegadas y visualizar historial de reservas. La aplicación utiliza simulación de datos en tiempo real con actualizaciones cada 5 segundos.
+FindMySpot es una aplicación que creé para resolver un problema real: encontrar parqueo en la universidad. La app te deja ver en tiempo real cuántos espacios hay disponibles en cada sótano, hacer "apartados simbólicos" de 5 minutos para que no pierdas tu lugar mientras llegas, y llevar un historial de tus parqueos.
 
-## Arquitectura y Decisiones de Modelado
+## Demo
 
-### Estructura de Capas
+Pueden ver la app funcionando aquí: [https://youtube.com/shorts/BNY9Sn2WGro](https://youtu.be/dtcLUE2l994) 
 
-La aplicación sigue una arquitectura clean de tres capas:
+## Características principales
 
-**Capa de Presentación (presentation/):** Contiene screens, ViewModels y componentes Compose reutilizables. Organizada por features con sus respectivos subdirectorios (login, register, parkinglist, etc.).
+- **Ver disponibilidad en tiempo real**: La app se actualiza automáticamente mostrando cuántos espacios hay libres en cada sótano
+- **Sistema de apartados**: Puedes apartar un espacio por 5 minutos (cuenta regresiva incluida)
+- **Confirmación de llegada**: Cuando llegas, confirmas tu llegada y el espacio queda marcado como ocupado
+- **Historial**: Guarda todos tus parqueos anteriores con fecha, duración y si confirmaste o no
+- **Tema oscuro/claro**: Puedes cambiar entre tema claro y oscuro
+- **Multiidioma**: Español e inglés (aunque admito que el inglés no lo uso mucho 😅)
 
-**Capa de Dominio (domain/):** Define modelos de datos y casos de uso sin dependencias de Android. Contiene la lógica de negocio pura e independiente de frameworks.
+## Tecnologías que usé
 
-**Utilidades (ui/theme, common):** Componentes visuales compartidos, temas de color y tipografía centralizados en una única fuente de verdad.
+- **Kotlin**: Todo el código está en Kotlin
+- **Jetpack Compose**: Para la UI (nada de XMLs antiguos)
+- **Firebase Auth**: Para login y registro de usuarios
+- **Firebase Firestore**: Base de datos en la nube para parqueos y reservaciones
+- **MVVM**: Arquitectura con ViewModels y StateFlow
+- **Navigation Compose**: Para navegar entre pantallas
+- **Coroutines & Flow**: Para operaciones asíncronas
 
-### Modelos de Dominio
+## Estructura del proyecto
 
-Los modelos principales reflejan entidades clave del negocio:
-
-**ParkingSpot:** Representa un sótano con capacidad total, espacios disponibles y coordenadas GPS. Incluye propiedades calculadas `status` (AVAILABLE, FEW_SPOTS, FULL) y `occupancyPercentage` que se derivan del estado actual, evitando datos redundantes.
-
-**Reservation:** Encapsula una reserva activa con tiempos de inicio y expiración. Las propiedades `remainingMinutes` y `isExpired` se calculan dinámicamente contra el reloj del sistema, permitiendo que la UI refleje cambios sin actualizaciones constantes de la base de datos.
-
-**ReservationHistory:** Registra apartados pasados con confirmación para análisis de patrones de uso.
-
-**User:** Modelo simple con identificación y contacto, preparado para extensión futura con roles o preferencias.
-
-Esta separación permite que los ViewModels mantengan lógica agnóstica del almacenamiento, facilitando testing y cambios futuros en la persistencia.
-
-## Estrategia de Cache y Paginación
-
-### Flujo de Datos en Tiempo Real
-
-El caso de uso `GetParkingSpotsUseCase` implementa un flujo continuo mediante `Flow<List<ParkingSpot>>`:
+Traté de mantener todo organizado en capas:
 
 ```
-emit(spots) → delay(5s) → emit(nuevos_spots) → ciclo continuo
+app/src/main/java/com/example/proyecto1/
+├── domain/                    # Lógica de negocio
+│   ├── model/                # Modelos (User, ParkingSpot, Reservation, etc.)
+│   ├── repository/           # Repositorios de Firebase
+│   └── usecase/              # Casos de uso
+├── presentation/             # UI
+│   ├── login/               # Pantalla de login
+│   ├── register/            # Registro de usuarios
+│   ├── forgotpassword/      # Recuperar contraseña
+│   ├── parkinglist/         # Lista de sótanos (pantalla principal)
+│   ├── reservation/         # Pantalla de apartado con timer
+│   ├── profile/             # Perfil e historial
+│   ├── settings/            # Configuraciones
+│   ├── navigation/          # NavGraph y rutas
+│   └── common/              # Componentes reutilizables
+└── ui/theme/                # Colores, tema, idiomas
 ```
 
-Esta estrategia proporciona actualizaciones pseudo-reales sin polling tradicional. Los disponibles se recalculan aleatoriamente cada 5 segundos en la capa de dominio, simulando cambios dinámicos de ocupación.
+## Cómo funciona
 
-### Ausencia de Caché Persistente
+### 1. Autenticación
+Usé Firebase Authentication para el login. Los usuarios se registran con email y contraseña. También implementé recuperación de contraseña por correo.
 
-La aplicación **no implementa caché en disco** por diseño. Las razones incluyen:
+### 2. Ver sótanos disponibles
+La pantalla principal muestra todos los sótanos con:
+- Número de sótano
+- Espacios disponibles (ej: "5/20 espacios")
+- Estado con color:
+  - 🟢 Verde = Disponible (más del 20% libre)
+  - 🟡 Amarillo = Pocos espacios (20% o menos)
+  - 🔴 Rojo = Lleno
 
-- **Consistencia:** Los datos de estacionamiento cambian constantemente; un caché envejecido sería más dañino que útil.
-- **Simplicidad:** Sin base de datos local, se eliminan dependencias de Room o SQLite y complejidad de sincronización.
-- **UX:** El usuario espera información actual; mostrar datos cacheados de minutos atrás contradice el propósito de la app.
+Los datos se actualizan en tiempo real usando Firestore listeners.
 
-En cambio, se mantiene un caché **en memoria** a través del estado de Compose, optimizado por la reactividad del framework.
+### 3. Sistema de apartados
+Cuando apartas un espacio:
+1. Se crea una reservación en Firestore
+2. El contador de espacios ocupados del sótano aumenta en 1
+3. Se muestra un timer de 5 minutos
+4. Solo puedes tener 1 apartado activo a la vez
+5. Si no confirmas tu llegada antes de que expire, pierdes el apartado
 
-### Estrategia de Paginación
+### 4. Confirmar llegada
+Al llegar al sótano, confirmas tu llegada:
+1. El apartado se marca como confirmado
+2. La pantalla cambia a "Estacionado"
+3. Cuando te vayas, marcas el espacio como desocupado
+4. Se crea un registro en tu historial
 
-La paginación no se implementa actualmente porque:
+### 5. Historial
+Todo queda guardado en Firestore:
+- Fecha y hora
+- Sótano usado
+- Si confirmaste o no
+- Duración total
 
-- **Volumen de datos:** Se esperan máximo 4-6 sótanos en la UVG; listar todos simultáneamente es viable.
-- **Experiencia:** Una única pantalla con scroll es más intuitiva que paginación por sótanos.
+## Decisiones de diseño
 
-Cuando el catálogo escale, se introducirá paginación lazy con `LazyColumn` filtrando por estado (disponibles primero, luego completos).
+### ¿Por qué Firebase?
+Originalmente iba a simular todo local, pero decidí usar Firebase para que fuera más realista. Así varios usuarios pueden usar la app al mismo tiempo y ver los cambios en tiempo real.
 
-## Manejo de Estado sin ViewModel Directo
+### El problema del apartado único
+Decidí que solo puedas tener 1 apartado activo porque:
+- Evita que alguien aparte múltiples espacios
+- Es más justo para todos
+- En la vida real tampoco puedes estar en dos lugares a la vez 🤷‍♂️
 
-### Arquitectura de Estado Reactivo
+### Flows en tiempo real
+Usé Firestore listeners para que los cambios se reflejen automáticamente. Si alguien aparta un espacio, todos lo ven de inmediato sin tener que hacer refresh.
 
-Aunque la aplicación usa ViewModels estándar de Android, sigue principios de programación reactiva que permiten descopplement:
+### Validaciones
+Implementé validaciones tanto en el frontend como en el backend:
+- Emails válidos
+- Contraseñas de al menos 6 caracteres
+- No puedes apartar si ya tienes un apartado activo
+- Los timers se validan en el cliente
 
-**State Holders:** Cada pantalla define un `State` data class inmutable (LoginState, ReservationState, etc.) que centraliza la UI como función del estado.
+## Problemas que tuve y cómo los resolví
 
-**Flow/StateFlow:** Los ViewModels exponen `StateFlow` que observamos con `collectAsState()`, permitiendo que Compose reactive sea la fuente de verdad.
+### 1. Sincronización de datos
+**Problema**: Al principio los contadores de espacios se desincronizaban.
 
-### Flujo de Cambios de Estado
+**Solución**: Usé transacciones de Firestore y FieldValue.increment() para operaciones atómicas.
 
-1. Usuario dispara acción (click en botón)
-2. ViewModel invoca caso de uso
-3. Caso de uso actualiza `StateFlow`
-4. Compose recompone solo widgets afectados
+### 2. Timer que seguía corriendo
+**Problema**: El timer de la reservación seguía corriendo incluso después de salir de la pantalla.
 
-Ejemplo con Reservación:
+**Solución**: Usé LaunchedEffect con las condiciones correctas para cancelar el timer cuando cambias de estado.
 
-```kotlin
-viewModel.confirmArrival()
-  → updateState { it.copy(isLoading = true) }
-  → invocar ConfirmArrivalUseCase
-  → setState { it.copy(isConfirmed = true, isLoading = false) }
-  → LaunchedEffect ejecuta onNavigateBack tras 2s
+### 3. Estado de reservación no se actualizaba
+**Problema**: Cuando volvías a la lista de sótanos, no detectaba que tenías una reservación activa.
+
+**Solución**: Agregué `checkActiveReservation()` en el init del ViewModel de la lista.
+
+### 4. Timeouts de Firebase
+**Problema**: A veces Firebase tardaba mucho y la app se quedaba cargando.
+
+**Solución**: Implementé timeouts de 30 segundos con mensajes de error apropiados.
+
+## Cosas que me hubiera gustado agregar
+
+- [ ] Mapas con Google Maps API para mostrar ubicación exacta de cada sótano
+- [ ] Notificaciones push cuando tu apartado está por expirar
+- [ ] Sistema de favoritos para sótanos
+- [ ] Estadísticas (cuál sótano usas más, a qué horas, etc.)
+- [ ] Modo offline más robusto
+- [ ] Tests unitarios (lo sé, lo sé... 😅)
+
+## Requisitos para correr el proyecto
+
+- Android Studio Hedgehog o superior
+- JDK 11+
+- Cuenta de Firebase (ya está configurada en el proyecto)
+- Emulador o dispositivo con API 24+
+
+## Cómo correr el proyecto
+
+1. Clonar el repo:
+```bash
+git clone [tu-repo]
+cd Proyecto1
 ```
 
-### Independencia de ViewModel
+2. Abrir en Android Studio
 
-El modelo permite testear lógica de estado sin ViewModels:
+3. El proyecto ya tiene el archivo `google-services.json` configurado, así que debería funcionar de inmediato
 
-- Los casos de uso son funciones puras suspendibles
-- State data classes son testables directamente
-- Compose preview funciona con cualquier estado pasado como parámetro
+4. Sync Gradle y correr en un emulador o dispositivo
 
-## Consideraciones Offline
+5. Para probar con múltiples usuarios, puedes:
+   - Crear varias cuentas
+   - O usar dos emuladores a la vez
 
-### Estrategia de Resiliencia
+## Estructura de Firestore
 
-La aplicación enfrenta desconexión con estas tácticas:
-
-**Simulación Local:** Al usar casos de uso que generan datos localmente (sin HTTP real), funciona íntegramente sin red. Esto es apropiado para una demostración, pero requeriría ajuste en producción.
-
-**Estado Persistente en Memoria:** Las últimas reservas se mantienen en `ReservationState` incluso sin conectividad, permitiendo al usuario confirmar llegada o cancelar sin conexión.
-
-**Pantalla de Error Anticipada:** Existe `Screen.NoConnection` para mostrar cuando la conectividad falla (en producción, con llamadas HTTP reales).
-
-### Trade-offs de Offline
-
-**Pro:** Simplicidad actual; los datos simulados nunca fallan.
-
-**Contra:** No hay sincronización real con servidor. Al integrar un backend:
-
-- Implementar `WorkManager` para sync de reservas en background
-- Caché híbrido: datos críticos (historial) en SQLite, datos volátiles (disponibilidad) solo en red
-- Estrategia de retry exponencial con backoff
-
-**Recomendación:** Prioritizar sync de confirmaciones de llegada, que generan registros, sobre disponibilidad que puede reintentarse al reconectar.
-
-## Trade-offs Arquitectónicos
-
-### 1. Reactividad vs. Complejidad
-
-**Decisión:** Flows continuos para disponibilidad de estacionamiento.
-
-**Pro:** Usuarios ven cambios instantáneamente; experiencia fluida sin botones "actualizar".
-
-**Contra:** El flujo consume recursos en background. `delay(5s)` es configurable pero siempre activo mientras la pantalla es visible.
-
-**Mitigation:** `LaunchedEffect` y cancelación automática al salir de pantalla.
-
----
-
-### 2. Datos Simulados vs. Servidor Real
-
-**Decisión:** Lógica generativa en casos de uso sin HTTP.
-
-**Pro:** Offline-first; testing sin mock servers; prototipado rápido.
-
-**Contra:** No refleja latencia de red real; no hay errores auténticos de servidor.
-
-**Camino a Producción:** Reemplazar `GetParkingSpotsUseCase` con llamada HTTP + retry logic.
-
----
-
-### 3. Sin Persistencia Local
-
-**Decisión:** Memoria volátil; no usar Room/SQLite.
-
-**Pro:** Cero overhead; no sincronización de esquemas.
-
-**Contra:** Perder datos al cerrar app; sin historial durabilidad completa.
-
-**Futuro:** SQLite para historial; caché temporal para últimas búsquedas.
-
----
-
-### 4. Kotlin Coroutines sobre Rx
-
-**Decisión:** `suspend` y `Flow` vs. RxJava/RxKotlin.
-
-**Pro:** Nativo en Kotlin; curva de aprendizaje menor; debugging más simple.
-
-**Contra:** Menos operadores de transformación; comunidad RxJava más grande.
-
-**Justificación:** El equipo de Android de Google favorece coroutines; ideal para nuevos proyectos.
-
----
-
-### 5. Validación en UseCase vs. Presentation
-
-**Decisión:** Validación dual: UI en ViewModel (feedback rápido) + UseCase (seguridad).
-
-**Pro:** Feedback instantáneo al usuario; lógica de negocio protegida.
-
-**Contra:** Duplicación de reglas de validación.
-
-**Solución:** Extraer validadores a clase compartida `ValidationRules` reutilizable.
-
----
-
-## Componentes Reutilizables
-
-`CommonComponents.kt` centraliza patrones visuales:
-
-- **CustomTextField:** Campo con validación, visibilidad de contraseña, error inline
-- **CustomButton:** Estado de carga; soporte para disabled
-- **CustomTopAppBar:** Barra con navegación e icono
-- **LoadingScreen, ErrorMessage:** Estados visuales estándar
-
-Esto asegura consistencia sin duplicar código Compose.
-
-## Manejo de Errores
-
-Cada UseCase devuelve `Result<T>` que encapsula éxito o excepción:
-
-```kotlin
-suspend fun invoke(...): Result<User>
-  → ViewModel observa y actualiza state.errorMessage
-  → UI muestra ErrorMessage con opción de reintento
+### Colección `parkingSpots`
+```
+{
+  basementNumber: 1,
+  totalSpaces: 20,
+  occupiedSpaces: 5,
+  latitude: 14.6041,
+  longitude: -90.4891
+}
 ```
 
-No se usa `try-catch` explosivo; los errores fluyen naturalmente a través del estado.
+### Colección `reservations`
+```
+{
+  userId: "user123",
+  parkingSpotId: "spot1",
+  basementNumber: 1,
+  startTime: 1234567890,
+  expirationTime: 1234568190,
+  isActive: true,
+  isConfirmed: false,
+  isCompleted: false
+}
+```
 
-## Consideraciones de Rendimiento
+### Colección `reservationHistory`
+```
+{
+  userId: "user123",
+  basementNumber: 1,
+  date: 1234567890,
+  wasConfirmed: true,
+  duration: 45
+}
+```
 
-- **Recomposes Mínimas:** `StateFlow` + `collectAsState()` asegura que solo widgets que consumen cambios específicos se redibuja.
-- **Lazy Loading:** `LazyColumn` en historial para volúmenes grandes (futuro).
-- **Actualización Selectiva:** `occupancyPercentage` calculada bajo demanda, no guardada redundantemente.
+## Aprendizajes
 
-## Próximas Mejoras
+Este proyecto me ayudó a aprender:
+- Cómo estructurar una app Android moderna
+- Integración real con Firebase (no solo tutoriales)
+- Manejo de estados complejos con Compose
+- Flujos de tiempo real con Firestore
+- Arquitectura MVVM en la práctica
+- Navegación con argumentos en Compose
+- Manejo de errores y casos edge
+- Y sobre todo: **la importancia de probar con usuarios reales** (mis compañeros encontraron bugs que nunca imaginé 😂)
 
-1. Integración HTTP real con Retrofit + OkHttp
-2. Persistencia con Room para historial
-3. Mapas con Google Maps API
-4. Notificaciones push con Firebase Cloud Messaging
-5. Autenticación OAuth 2.0
-6. Análisis con Firebase Analytics
-7. Testing unitario exhaustivo con Mockk
-8. CI/CD con GitHub Actions
+## Créditos
 
-## Requisitos Técnicos
+Proyecto desarrollado por [tu nombre] para el curso de Plataformas Móviles - UVG
 
-- **Android:** API 24+
-- **Kotlin:** 2.0.21
-- **Compose:** 2024.09.00
-- **JDK:** 11+
+---
 
-## Dependencias Principales
-
-- `androidx.compose.*`: UI moderna
-- `androidx.navigation.compose`: Navegación declarativa
-- `androidx.lifecycle.viewmodel.compose`: Estado reactivo
-- `androidx.material.icons.extended`: Iconografía Material Design 3
-
-## Video: 
-https://youtube.com/shorts/BNY9Sn2WGro
+**Nota**: Esta es una versión de demostración. Para producción habría que:
+- Agregar reglas de seguridad más estrictas en Firestore
+- Implementar rate limiting
+- Agregar analytics
+- Mejorar manejo de errores
+- Y probablemente muchas cosas más que descubriría en el camino 🚀
